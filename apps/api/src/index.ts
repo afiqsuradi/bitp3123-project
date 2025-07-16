@@ -1,18 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { config, configService } from './config';
+import Routes from './startup/routes';
 
 const app = express();
+const routes = new Routes(app);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'API Testing.. OK',
-    environment: config.nodeEnv,
-    timestamp: new Date().toISOString(),
-  });
-});
+routes.registerRoutes();
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err.message);
