@@ -1,16 +1,22 @@
-import express, { Request, Response, NextFunction } from 'express';
-import { config, configService } from './config';
-import Routes from './startup/routes';
+import express, { Request, Response, NextFunction } from "express";
+import { config, configService, configurePassport } from "./config";
+import Routes from "./startup/routes";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+import PrismaDatabase from "./utils/database";
 
 const app = express();
 const routes = new Routes(app);
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
+configurePassport(passport);
 app.use(express.urlencoded({ extended: true }));
 routes.registerRoutes();
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err.message);
+  console.error("Error:", err.message);
 
   if (configService.isDevelopment()) {
     res.status(500).json({
@@ -19,7 +25,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     });
   } else {
     res.status(500).json({
-      error: 'Internal Server Error',
+      error: "Internal Server Error",
     });
   }
 });
@@ -30,18 +36,18 @@ const startServer = async () => {
       console.log(`Server is running on port ${config.port}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   process.exit(1);
 });
 
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   process.exit(1);
 });
 
