@@ -8,6 +8,14 @@ export default class AuthRouter implements RouterInterface {
   constructor() {
     this.router = express.Router();
     this.authController = new AuthController();
+    this.registerRoutes();
+  }
+
+  private registerRoutes() {
+    this.router.post(
+      "/register",
+      this.authController.registerUser.bind(this.authController),
+    );
   }
 
   public getRouter(): Router {

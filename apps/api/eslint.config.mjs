@@ -15,5 +15,5 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   tseslint.configs.recommended,
-  globalIgnores(["**/*.js", "node_modules/**", "dist/**", "src/generated/**"]),
+  globalIgnores(["**/*.js", "node_modules/**", "dist/**", "src/libs/**"]),
 ]);

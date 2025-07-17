@@ -1,4 +1,6 @@
 import PrismaDatabase from "../utils/database";
+import { Profile, User } from "../libs/prisma";
+import bcrypt from "bcrypt";
 
 export class UserService {
   private static instance_: UserService;
@@ -33,5 +35,36 @@ export class UserService {
       return null;
     }
     return user;
+  }
+
+  public async createUser(
+    user: Omit<User, "refresh_token" | "id">,
+    profile: Omit<Profile, "id" | "user_id">,
+  ) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    user = {
+      ...user,
+      password: hashedPassword,
+    };
+
+    const result = await this.database
+      .getPrismaClient()
+      .$transaction(async (prisma) => {
+        const createdUser = await prisma.user.create({
+          data: {
+            ...user,
+            password: hashedPassword,
+          },
+        });
+        const createdProfile = await prisma.profile.create({
+          data: {
+            ...profile,
+            user_id: createdUser.id,
+          },
+        });
+        return { ...createdUser, profile: createdProfile };
+      });
+
+    return result;
   }
 }
