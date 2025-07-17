@@ -15,17 +15,9 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique @db.VarChar(20)
-  password      String    @db.Text
-  refresh_token String?   @db.Text
-  Profile       Profile[]
-}
-
-model Profile {
-  id         Int    @id @default(autoincrement())
-  first_name String @db.VarChar(255)
-  last_name  String @db.VarChar(255)
-  user       User   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user_id    Int    @unique
+  id            Int     @id @default(autoincrement())
+  name          String? @db.VarChar(255)
+  username      String  @unique @db.VarChar(20)
+  password      String  @db.Text
+  refresh_token String? @db.Text
 }

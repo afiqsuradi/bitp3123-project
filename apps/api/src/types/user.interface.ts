@@ -1,3 +1,5 @@
+import { User } from "../libs/prisma";
+
 export interface JwtPayload {
   userId: number;
   username: string;
@@ -5,3 +7,5 @@ export interface JwtPayload {
   iat: number;
   exp: number;
 }
+
+export interface LoggedInUser extends Omit<User, "password"> {}

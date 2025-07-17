@@ -1,6 +1,9 @@
 import PrismaDatabase from "../utils/database";
-import { Profile, User } from "../libs/prisma";
+import { User } from "../libs/prisma";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { config } from "../config";
+import { LoggedInUser } from "../types/user.interface";
 
 export class UserService {
   private static instance_: UserService;
@@ -17,7 +20,7 @@ export class UserService {
     return UserService.instance_;
   }
 
-  public async getUserByUsername(username: string) {
+  public async getUserByUsername(username: string): Promise<User | null> {
     const user = await this.database
       .getPrismaClient()
       .user.findUnique({ where: { username } });
@@ -27,7 +30,7 @@ export class UserService {
     return user;
   }
 
-  public async getUserById(id: number) {
+  public async getUserById(id: number): Promise<User | null> {
     const user = await this.database
       .getPrismaClient()
       .user.findUnique({ where: { id } });
@@ -37,34 +40,44 @@ export class UserService {
     return user;
   }
 
-  public async createUser(
-    user: Omit<User, "refresh_token" | "id">,
-    profile: Omit<Profile, "id" | "user_id">,
-  ) {
+  public async createUser(user: Omit<User, "refresh_token" | "id">) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
-    user = {
-      ...user,
-      password: hashedPassword,
-    };
+    const existingUser = await this.database
+      .getPrismaClient()
+      .user.findUnique({ where: { username: user.username } });
+    if (existingUser) {
+      throw new Error("User already exists");
+    }
+    const createdUser = await this.database.getPrismaClient().user.create({
+      data: {
+        ...user,
+        password: hashedPassword,
+      },
+    });
 
+    return createdUser;
+  }
+
+  public async loginUser(user: User) {
+    const token = jwt.sign(
+      { user_id: user.id, username: user.username, name: user.name },
+      config.jwt.secret,
+      {
+        expiresIn: "6d",
+      },
+    );
     const result = await this.database
       .getPrismaClient()
-      .$transaction(async (prisma) => {
-        const createdUser = await prisma.user.create({
-          data: {
-            ...user,
-            password: hashedPassword,
-          },
-        });
-        const createdProfile = await prisma.profile.create({
-          data: {
-            ...profile,
-            user_id: createdUser.id,
-          },
-        });
-        return { ...createdUser, profile: createdProfile };
-      });
-
-    return result;
+      .user.update({ where: { id: user.id }, data: { refresh_token: token } });
+    if (!result) {
+      return null;
+    }
+    const loggedInUser: LoggedInUser = {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      refresh_token: token,
+    };
+    return loggedInUser;
   }
 }

@@ -1,5 +1,5 @@
 import * as z from "zod";
-const UserValidation = z.object({
+const UserRegistrationValidation = z.object({
   first_name: z.string().min(3).max(50),
   last_name: z.string().min(3).max(50),
   username: z.string().min(4).max(20),
@@ -7,4 +7,4 @@ const UserValidation = z.object({
   refresh_token: z.string().optional(),
 });
 
-export { UserValidation };
+export { UserRegistrationValidation };

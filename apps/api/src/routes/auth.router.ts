@@ -1,6 +1,7 @@
 import RouterInterface from "./router.interface";
 import express, { Router } from "express";
 import AuthController from "../controllers/auth.controller";
+import passport from "passport";
 
 export default class AuthRouter implements RouterInterface {
   private router: Router;
@@ -15,6 +16,11 @@ export default class AuthRouter implements RouterInterface {
     this.router.post(
       "/register",
       this.authController.registerUser.bind(this.authController),
+    );
+    this.router.post(
+      "/login",
+      passport.authenticate("local", { session: false }),
+      this.authController.loginUser.bind(this.authController),
     );
   }
 

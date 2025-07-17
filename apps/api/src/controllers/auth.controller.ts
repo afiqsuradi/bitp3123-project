@@ -1,6 +1,7 @@
 import { UserService } from "../services/user.service";
 import { Request, Response } from "express";
-import { UserValidation } from "../utils/validation";
+import { User } from "../libs/prisma";
+import { UserRegistrationValidation } from "../utils/validation";
 import { ZodError } from "zod";
 
 export default class AuthController {
@@ -13,22 +14,23 @@ export default class AuthController {
   public registerUser(req: Request, res: Response) {
     try {
       const userData = req.body;
-      const validatedUserData = UserValidation.parse(userData);
+      const validatedUserData = UserRegistrationValidation.parse(userData);
       this.userService
-        .createUser(
-          {
-            username: validatedUserData.username,
-            password: validatedUserData.password,
-          },
-          {
-            first_name: validatedUserData.first_name,
-            last_name: validatedUserData.last_name,
-          },
-        )
+        .createUser({
+          username: validatedUserData.username,
+          password: validatedUserData.password,
+          name: `${validatedUserData.first_name} ${validatedUserData.last_name}`,
+        })
         .then((user) => {
           return res.status(201).json({
             status: "success",
             message: "User created successfully",
+          });
+        })
+        .catch((error) => {
+          return res.status(500).json({
+            status: "Error",
+            message: error.message,
           });
         });
     } catch (error) {
@@ -43,6 +45,27 @@ export default class AuthController {
           errors: formattedErrors,
         });
       }
+      return res.status(500).json({
+        error: "Internal server error",
+        message: "An unexpected error occurred",
+      });
+    }
+  }
+
+  public loginUser(req: Request, res: Response) {
+    try {
+      const user = req.user as User;
+      const loggedInUserData = this.userService.loginUser(user);
+      if (!loggedInUserData)
+        return res.status(401).json({ error: "Unauthorized" });
+      return res.status(200).json({
+        status: "success",
+        message: "User logged in successfully",
+        data: {
+          user,
+        },
+      });
+    } catch (error) {
       console.error("Unexpected error:", error);
       return res.status(500).json({
         error: "Internal server error",

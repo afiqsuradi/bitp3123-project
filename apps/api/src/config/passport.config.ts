@@ -13,11 +13,11 @@ export const configurePassport = (passport: PassportStatic) => {
       try {
         const user = await UserService.get().getUserByUsername(username);
         if (!user) {
-          return done(null, false, { message: "Incorrect username." });
+          return done(null, false);
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-          return done(null, false, { message: "Incorrect password." });
+          return done(null, false);
         }
         return done(null, user);
       } catch (err) {
