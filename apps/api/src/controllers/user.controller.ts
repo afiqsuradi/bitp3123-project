@@ -1,7 +1,7 @@
-import { UserService } from '../services/user.service';
+import { UserService } from "../services/user.service";
 export class UserController {
-    userService: UserService;
-    constructor() {
-        this.userService = UserService.getUserService();
-    }
+  private userService: UserService;
+  constructor() {
+    this.userService = UserService.getUserService();
+  }
 }
