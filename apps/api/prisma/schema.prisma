@@ -6,19 +6,20 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../src/libs/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DIRECT_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id       Int       @id @default(autoincrement())
-  username String    @unique @db.VarChar(20)
-  password String    @db.Text
-  Profile  Profile[]
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(20)
+  password      String    @db.Text
+  refresh_token String    @db.Text
+  Profile       Profile[]
 }
 
 model Profile {
