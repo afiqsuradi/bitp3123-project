@@ -4,6 +4,7 @@ import { User } from "../libs/prisma";
 import { UserRegistrationValidation } from "../utils/validation";
 import { ZodError } from "zod";
 import { RegistringUserType } from "../types/user.interface";
+import { configService } from "../config";
 
 export default class AuthController {
   private userService: UserService;
@@ -53,19 +54,31 @@ export default class AuthController {
     }
   }
 
-  public loginUser(req: Request, res: Response) {
+  public async loginUser(req: Request, res: Response) {
     try {
       const user = req.user as User;
-      const loggedInUserData = this.userService.loginUser(user);
+      const loggedInUserData = await this.userService.loginUser(user);
       if (!loggedInUserData)
         return res.status(401).json({ error: "Unauthorized" });
-      return res.status(200).json({
-        status: "success",
-        message: "User logged in successfully",
-        data: {
-          user,
-        },
-      });
+
+      const cookieOptions = {
+        httpOnly: true,
+        secure: !configService.isProduction(),
+        sameSite: "strict" as const,
+        maxAge: 6 * 24 * 60 * 60 * 1000, // 6 days expiration
+        path: "/",
+      };
+
+      return res
+        .status(200)
+        .cookie("jwt", user.refresh_token, cookieOptions)
+        .json({
+          status: "success",
+          message: "User logged in successfully",
+          data: {
+            loggedInUserData,
+          },
+        });
     } catch (error) {
       console.error("Unexpected error:", error);
       return res.status(500).json({
