@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { apiService } from '@/services/api.service.ts'
 import { useState } from 'react'
 import { ApiError } from '@/types/errors.type.ts'
+import { setUser, clearUser } from '@/stores/userStore.ts'
 
 interface LoginRequest {
   email: string
@@ -91,6 +92,7 @@ export const useLogin = () => {
       apiService.login(credentials),
     onSuccess: (data) => {
       queryClient.setQueryData(['user'], data.data.loggedInUserData)
+      setUser(data.data.loggedInUserData)
       navigate({ to: '/' })
     },
     onError: (error: ApiError) => {
@@ -116,6 +118,7 @@ export const useLogout = () => {
     mutationFn: () => apiService.logout(),
     onSuccess: () => {
       queryClient.clear()
+      clearUser()
       navigate({ to: '/auth/login' })
     },
     onError: (error) => {

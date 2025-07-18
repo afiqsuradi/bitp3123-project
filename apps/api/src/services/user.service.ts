@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { LoggingInUserType, RegistringUserType } from "../types/user.interface";
 
+//TODO: probably will never get done, move auth related service to authservice
 export class UserService {
   private static instance_: UserService;
   private database: PrismaDatabase;
@@ -62,7 +63,7 @@ export class UserService {
 
   public async loginUser(user: User) {
     const token = jwt.sign(
-      { user_id: user.id, email: user.email, name: user.name, role: user.role },
+      { id: user.id, email: user.email, name: user.name, role: user.role },
       config.jwt.secret,
       {
         expiresIn: "6d",
@@ -82,5 +83,12 @@ export class UserService {
       refresh_token: token,
     };
     return loggedInUser;
+  }
+
+  public logoutUser(user: User) {
+    return this.database.getPrismaClient().user.update({
+      where: { id: user.id },
+      data: { refresh_token: "" },
+    });
   }
 }

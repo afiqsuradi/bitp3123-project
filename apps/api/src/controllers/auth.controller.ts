@@ -71,12 +71,12 @@ export default class AuthController {
 
       return res
         .status(200)
-        .cookie("jwt", user.refresh_token, cookieOptions)
+        .cookie("jwt", loggedInUserData.refresh_token, cookieOptions)
         .json({
           status: "success",
           message: "User logged in successfully",
           data: {
-            loggedInUserData,
+            user: { ...loggedInUserData },
           },
         });
     } catch (error) {
@@ -86,5 +86,27 @@ export default class AuthController {
         message: "An unexpected error occurred",
       });
     }
+  }
+
+  public async logoutUser(req: Request, res: Response) {
+    const user = req.user as User;
+    this.userService
+      .logoutUser(user)
+      .then(() => {
+        return res.status(200).clearCookie("jwt").json({});
+      })
+      .catch((error) => {
+        return res.status(500).json({ data: { message: error.message } });
+      });
+  }
+
+  public async getUser(req: Request, res: Response) {
+    const { password_hash, ...user } = req.user as User;
+    return res.status(200).json({
+      status: "success",
+      data: {
+        user: { ...user },
+      },
+    });
   }
 }

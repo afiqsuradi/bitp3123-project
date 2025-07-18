@@ -1,7 +1,7 @@
 import { User } from "../libs/prisma";
 
 export interface JwtPayload {
-  userId: number;
+  id: number;
   email: string;
   name: string;
   iat: number;

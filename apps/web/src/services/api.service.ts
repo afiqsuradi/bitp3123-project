@@ -50,8 +50,8 @@ class ApiService {
     })
   }
 
-  getCurrentUser() {
-    return this.request('/auth/me')
+  getCurrentUser<T>() {
+    return this.request<T>('/auth/me')
   }
 }
 

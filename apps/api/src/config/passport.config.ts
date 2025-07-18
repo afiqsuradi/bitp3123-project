@@ -5,6 +5,26 @@ import { UserService } from "../services/user.service";
 import bcrypt from "bcrypt";
 import { JwtPayload } from "../types/user.interface";
 import { config } from "./environment.config";
+import { Request } from "express";
+
+const jwtExtractor = (req: Request) => {
+  let token = null;
+
+  // First try to get token from Authorization header (for mobile)
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer ")
+  ) {
+    token = req.headers.authorization.substring(7);
+  }
+
+  // If no token in header, try to get from cookie (for web)
+  if (!token && req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  return token;
+};
 
 export const configurePassport = (passport: PassportStatic) => {
   // email/password
@@ -31,14 +51,17 @@ export const configurePassport = (passport: PassportStatic) => {
 
   // jwt
   const opts = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    jwtFromRequest: jwtExtractor,
     secretOrKey: config.jwt.secret,
+    passReqToCallback: true as const,
   };
 
   passport.use(
-    new JwtStrategy(opts, async (jwt_payload: JwtPayload, done) => {
-      const user = await UserService.get().getUserById(jwt_payload.userId);
-      if (user) {
+    new JwtStrategy(opts, async (req, jwt_payload: JwtPayload, done) => {
+      const token = jwtExtractor(req);
+      const user = await UserService.get().getUserById(jwt_payload.id);
+      console.log(user?.refresh_token, token);
+      if (user && token === user.refresh_token) {
         return done(null, user);
       }
       return done(null, false);

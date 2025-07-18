@@ -22,6 +22,17 @@ export default class AuthRouter implements RouterInterface {
       passport.authenticate("local", { session: false }),
       this.authController.loginUser.bind(this.authController),
     );
+    this.router.post(
+      "/logout",
+      passport.authenticate("jwt", { session: false }),
+      this.authController.logoutUser.bind(this.authController),
+    );
+
+    this.router.get(
+      "/me",
+      passport.authenticate("jwt", { session: false }),
+      this.authController.getUser.bind(this.authController),
+    );
   }
 
   public getRouter(): Router {
