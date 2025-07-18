@@ -16,7 +16,6 @@ interface Config {
   };
   jwt: {
     secret: string;
-    expiresIn: string;
   };
   cors: {
     origin: string;
@@ -44,7 +43,6 @@ class ConfigService {
       },
       jwt: {
         secret: process.env.JWT_SECRET || "",
-        expiresIn: process.env.JWT_EXPIRES_IN || "",
       },
       cors: {
         origin: process.env.CORS_ORIGIN || "http://localhost:3000",
@@ -53,7 +51,7 @@ class ConfigService {
   }
 
   private validateConfig(): void {
-    const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET", "JWT_EXPIRES_IN"];
+    const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET"];
 
     const missingEnvVars = requiredEnvVars.filter(
       (envVar) => !process.env[envVar],
