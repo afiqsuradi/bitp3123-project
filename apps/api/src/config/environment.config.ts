@@ -7,13 +7,6 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 interface Config {
   port: number;
   nodeEnv: string;
-  database: {
-    host: string;
-    port: number;
-    name: string;
-    user: string;
-    password: string;
-  };
   jwt: {
     secret: string;
   };
@@ -34,13 +27,6 @@ class ConfigService {
     return {
       port: parseInt(process.env.PORT || "3000", 10),
       nodeEnv: process.env.NODE_ENV || "development",
-      database: {
-        host: process.env.DB_HOST || "localhost",
-        port: parseInt(process.env.DB_PORT || "5432", 10),
-        name: process.env.DB_NAME || "",
-        user: process.env.DB_USER || "",
-        password: process.env.DB_PASSWORD || "",
-      },
       jwt: {
         secret: process.env.JWT_SECRET || "",
       },
@@ -51,7 +37,7 @@ class ConfigService {
   }
 
   private validateConfig(): void {
-    const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET"];
+    const requiredEnvVars = ["JWT_SECRET"];
 
     const missingEnvVars = requiredEnvVars.filter(
       (envVar) => !process.env[envVar],
