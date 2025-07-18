@@ -1,8 +1,14 @@
 import { useStore } from '@tanstack/react-store'
-import { userStore, selectUser, selectIsLoggedIn } from '@/stores/userStore.ts'
+import {
+  userStore,
+  selectUser,
+  selectIsLoggedIn,
+  selectIsLoading,
+} from '@/stores/userStore.ts'
 
 export const useUserStore = () => {
   const user = useStore(userStore, selectUser)
   const isLoggedIn = useStore(userStore, selectIsLoggedIn)
-  return { user, isLoggedIn }
+  const isLoading = useStore(userStore, selectIsLoading)
+  return { user, isLoggedIn, isLoading }
 }

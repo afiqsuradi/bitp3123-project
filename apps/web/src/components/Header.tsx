@@ -1,18 +1,27 @@
 import { Link } from '@tanstack/react-router'
 import { Button } from './ui/button'
 import { useUserStore } from '@/hooks/useUserStore'
+import { useLogout } from '@/hooks/api/useAuth.ts'
+import { PiCourtBasketballFill } from 'react-icons/pi'
 
 export default function Header() {
   const { isLoggedIn } = useUserStore()
+  const { mutate: logout } = useLogout()
   return (
-    <header className="flex justify-center py-4 border-b border-gray-200 ">
+    <header className="flex justify-center py-4 border-b border-gray-200 shadow-sm">
       <nav className="container flex flex-row w-full justify-between items-center">
-        <div className="px-2 font-bold">
-          <Link to="/">Home</Link>
-        </div>
+        <Link to={'/'} className="flex flex-row gap-2 items-center">
+          <PiCourtBasketballFill className="h-12 w-12 text-primary color-primary" />
+          <div className="flex flex-col gap-[0.05rem]">
+            <h3 className="text-base font-semibold ">CourtBook</h3>
+            <p className="text-sm font-medium">Badminton Court Booking</p>
+          </div>
+        </Link>
         <ol className="flex flex-row gap-4">
           {isLoggedIn ? (
-            <p>Logged In</p>
+            <Button variant="outline" onClick={() => logout()}>
+              Logout
+            </Button>
           ) : (
             <>
               <Link to="/auth/login">

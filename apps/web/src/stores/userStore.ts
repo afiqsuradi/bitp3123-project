@@ -67,5 +67,6 @@ export const clearUser = () => {
 
 export const selectUser = (state: UserState) => state.user
 export const selectIsLoggedIn = (state: UserState) => state.isLoggedIn
+export const selectIsLoading = (state: UserState) => state.isLoading
 
 loadInitialState()
