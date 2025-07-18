@@ -60,7 +60,6 @@ export const configurePassport = (passport: PassportStatic) => {
     new JwtStrategy(opts, async (req, jwt_payload: JwtPayload, done) => {
       const token = jwtExtractor(req);
       const user = await UserService.get().getUserById(jwt_payload.id);
-      console.log(user?.refresh_token, token);
       if (user && token === user.refresh_token) {
         return done(null, user);
       }
