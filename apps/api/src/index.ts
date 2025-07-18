@@ -3,11 +3,19 @@ import { config, configService, configurePassport } from "./config";
 import Routes from "./startup/routes";
 import cookieParser from "cookie-parser";
 import passport from "passport";
-import PrismaDatabase from "./utils/database";
+import cors from "cors";
 
 const app = express();
 const routes = new Routes(app);
 
+app.use(
+  cors({
+    origin: config.cors.origin,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
