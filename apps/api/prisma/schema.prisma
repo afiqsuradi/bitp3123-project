@@ -14,10 +14,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CourtStatus {
+  AVAILABLE
+  MAINTENANCE
+  CLOSED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
-  id            Int     @id @default(autoincrement())
-  name          String? @db.VarChar(255)
-  username      String  @unique @db.VarChar(20)
-  password      String  @db.Text
-  refresh_token String? @db.Text
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(255)
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.Text
+  role          Role      @default(USER)
+  refresh_token String?   @db.Text
+  bookings      Booking[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email, role])
+}
+
+model Court {
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(100)
+  location  String      @db.VarChar(255)
+  status    CourtStatus @default(AVAILABLE)
+  bookings  Booking[]
+  // closures  CourtClosure[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([name, location])
+}
+
+// Would have added this if i got more time tbh
+// model CourtClosure {
+//   id        Int      @id @default(autoincrement())
+//   court     Court    @relation(fields: [courtId], references: [id])
+//   courtId   Int
+//   reason    String?  @db.VarChar(255)
+//   startDate DateTime
+//   endDate   DateTime
+//
+//   @@index([courtId, startDate, endDate])
+// }
+
+model Booking {
+  id        Int           @id @default(autoincrement())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  court     Court         @relation(fields: [courtId], references: [id])
+  courtId   Int
+  startTime DateTime
+  endTime   DateTime
+  status    BookingStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([courtId, startTime, endTime])
+  @@index([userId, status])
 }
