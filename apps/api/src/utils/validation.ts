@@ -1,10 +1,8 @@
 import * as z from "zod";
 const UserRegistrationValidation = z.object({
-  first_name: z.string().min(3).max(50),
-  last_name: z.string().min(3).max(50),
-  username: z.string().min(4).max(20),
+  name: z.string().min(3).max(50),
+  email: z.email(),
   password: z.string().min(5).max(100),
-  refresh_token: z.string().optional(),
 });
 
 export { UserRegistrationValidation };

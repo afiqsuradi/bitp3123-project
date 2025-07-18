@@ -3,7 +3,7 @@ import { User } from "../libs/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { config } from "../config";
-import { LoggedInUser } from "../types/user.interface";
+import { LoggingInUserType, RegistringUserType } from "../types/user.interface";
 
 export class UserService {
   private static instance_: UserService;
@@ -20,10 +20,10 @@ export class UserService {
     return UserService.instance_;
   }
 
-  public async getUserByUsername(username: string): Promise<User | null> {
+  public async getUserByEmail(email: string): Promise<User | null> {
     const user = await this.database
       .getPrismaClient()
-      .user.findUnique({ where: { username } });
+      .user.findUnique({ where: { email } });
     if (!user) {
       return null;
     }
@@ -40,18 +40,20 @@ export class UserService {
     return user;
   }
 
-  public async createUser(user: Omit<User, "refresh_token" | "id">) {
+  public async createUser(user: RegistringUserType) {
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const existingUser = await this.database
       .getPrismaClient()
-      .user.findUnique({ where: { username: user.username } });
+      .user.findUnique({ where: { email: user.email } });
     if (existingUser) {
       throw new Error("User already exists");
     }
     const createdUser = await this.database.getPrismaClient().user.create({
       data: {
-        ...user,
-        password: hashedPassword,
+        name: user.name,
+        email: user.email,
+        refresh_token: "",
+        password_hash: hashedPassword,
       },
     });
 
@@ -60,7 +62,7 @@ export class UserService {
 
   public async loginUser(user: User) {
     const token = jwt.sign(
-      { user_id: user.id, username: user.username, name: user.name },
+      { user_id: user.id, email: user.email, name: user.name, role: user.role },
       config.jwt.secret,
       {
         expiresIn: "6d",
@@ -72,10 +74,11 @@ export class UserService {
     if (!result) {
       return null;
     }
-    const loggedInUser: LoggedInUser = {
+    const loggedInUser: LoggingInUserType = {
       id: user.id,
-      username: user.username,
+      email: user.email,
       name: user.name,
+      role: user.role,
       refresh_token: token,
     };
     return loggedInUser;

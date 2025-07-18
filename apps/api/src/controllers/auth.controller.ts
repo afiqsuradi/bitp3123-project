@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { User } from "../libs/prisma";
 import { UserRegistrationValidation } from "../utils/validation";
 import { ZodError } from "zod";
+import { RegistringUserType } from "../types/user.interface";
 
 export default class AuthController {
   private userService: UserService;
@@ -17,10 +18,10 @@ export default class AuthController {
       const validatedUserData = UserRegistrationValidation.parse(userData);
       this.userService
         .createUser({
-          username: validatedUserData.username,
+          name: validatedUserData.name,
+          email: validatedUserData.email,
           password: validatedUserData.password,
-          name: `${validatedUserData.first_name} ${validatedUserData.last_name}`,
-        })
+        } as RegistringUserType)
         .then((user) => {
           return res.status(201).json({
             status: "success",
