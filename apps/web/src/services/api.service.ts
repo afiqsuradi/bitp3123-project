@@ -37,6 +37,13 @@ class ApiService {
     })
   }
 
+  register<T>(credentials: { name: string; email: string; password: string }) {
+    return this.request<T>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    })
+  }
+
   logout() {
     return this.request('/auth/logout', {
       method: 'POST',
