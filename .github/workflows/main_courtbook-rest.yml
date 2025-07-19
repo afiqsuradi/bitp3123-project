@@ -40,7 +40,8 @@ jobs:
           cp apps/api/package-lock.json deployment_package/
           cp -r apps/api/prisma deployment_package/
           # i think i know what went wrong
-          cp -r apps/api/node_modules deployment_package/
+          mkdir -p deployment_package/node_modules
+          cp -r apps/api/node_modules/* deployment_package/node_modules
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
