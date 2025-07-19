@@ -38,7 +38,12 @@ jobs:
           cp -r apps/api/dist/* deployment_package/
           cp apps/api/package.json deployment_package/
           cp apps/api/package-lock.json deployment_package/
+          # Prisma shit
           cp -r apps/api/prisma deployment_package/
+          mkdir -p deployment_package/node_modules/@prisma
+          mkdir -p deployment_package/node_modules/.prisma
+          cp -r apps/api/node_modules/@prisma/client deployment_package/node_modules/@prisma/
+          cp -r apps/api/node_modules/.prisma deployment_package/node_modules/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
