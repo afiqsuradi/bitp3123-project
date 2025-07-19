@@ -1,5 +1,6 @@
 import CourtService from "../services/court.service";
 import { Request, Response } from "express";
+import { Booking } from "../libs/prisma";
 
 export default class CourtController {
   private courtService: CourtService;
@@ -50,5 +51,33 @@ export default class CourtController {
           message: error.message,
         });
       });
+  }
+
+  public async getCourtBookingsById(req: Request, res: Response) {
+    try {
+      const { courtId } = req.params;
+      const date = req.query.date as string;
+      let result: [] | Booking[];
+      if (date) {
+        result = await this.courtService.getCourtBookingsById(
+          Number(courtId),
+          date,
+        );
+      } else {
+        result = await this.courtService.getCourtBookingsById(Number(courtId));
+      }
+
+      return res.status(200).json({
+        status: "success",
+        data: {
+          result,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: error || "An unexpected error occurred",
+      });
+    }
   }
 }
