@@ -28,7 +28,6 @@ jobs:
         run: |
           npm ci
           npx prisma generate
-          npx prisma migrate deploy
           npm run build
 
       # - name: Zip artifact for deployment
