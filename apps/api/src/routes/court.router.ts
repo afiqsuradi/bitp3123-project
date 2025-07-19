@@ -21,5 +21,10 @@ export default class CourtRouter implements RouterInterface {
       "/",
       this.courtController.getAllCourts.bind(this.courtController),
     );
+
+    this.router.get(
+      "/:courtId",
+      this.courtController.getCourt.bind(this.courtController),
+    );
   }
 }

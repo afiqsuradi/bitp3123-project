@@ -17,9 +17,85 @@ export default class CourtService {
   }
 
   public async getAllCourts() {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
+
     const courts: Court[] | [] = await this.database
       .getPrismaClient()
-      .court.findMany();
+      .court.findMany({
+        include: {
+          bookings: {
+            where: {
+              AND: [
+                {
+                  startTime: {
+                    gte: startOfDay,
+                  },
+                },
+                {
+                  startTime: {
+                    lte: endOfDay,
+                  },
+                },
+              ],
+            },
+            orderBy: {
+              startTime: "asc",
+            },
+          },
+        },
+      });
     return courts;
+  }
+
+  public async getCourtById(id: number) {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
+    const court = await this.database.getPrismaClient().court.findUnique({
+      where: { id },
+      include: {
+        bookings: {
+          where: {
+            AND: [
+              {
+                startTime: {
+                  gte: startOfDay,
+                },
+              },
+              {
+                startTime: {
+                  lte: endOfDay,
+                },
+              },
+            ],
+          },
+          orderBy: {
+            startTime: "asc",
+          },
+        },
+      },
+    });
+    if (!court) {
+      return null;
+    }
+    return court;
   }
 }
