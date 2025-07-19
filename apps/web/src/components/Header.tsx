@@ -6,7 +6,7 @@ import { useLogout } from '@/hooks/api/useAuth.ts'
 import { Separator } from '@/components/ui/separator'
 
 export default function Header() {
-  const { isLoggedIn } = useUserStore()
+  const { isLoggedIn, user } = useUserStore()
   const { mutate: logout } = useLogout()
   return (
     <header className="flex justify-center py-4 border-b border-gray-200 shadow-sm">
@@ -21,13 +21,20 @@ export default function Header() {
         <ol className="flex flex-row gap-4">
           {isLoggedIn ? (
             <>
-            <Link to="/bookings">
-            <Button variant="outline">My Bookings</Button>
-            </Link>
-            <Separator orientation="vertical" />
-            <Button variant="outline" onClick={() => logout()}>
-              Logout
-            </Button>
+              {user?.role.toLowerCase() === 'admin' ? (
+                <Link to="/admin">
+                  <Button variant="outline">Admin Panel</Button>
+                </Link>
+              ) : (
+                <></>
+              )}
+              <Link to="/bookings">
+                <Button variant="outline">My Bookings</Button>
+              </Link>
+              <Separator orientation="vertical" />
+              <Button variant="outline" onClick={() => logout()}>
+                Logout
+              </Button>
             </>
           ) : (
             <>

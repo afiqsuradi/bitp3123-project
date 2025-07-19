@@ -30,4 +30,11 @@ const BookingValidation = z.object({
     }),
 });
 
-export { UserRegistrationValidation, BookingValidation };
+const BookingStatusValidation = z.enum(["CONFIRMED", "PENDING", "CANCELLED"]);
+type BookingStatusType = z.infer<typeof BookingStatusValidation>;
+export {
+  UserRegistrationValidation,
+  BookingValidation,
+  BookingStatusValidation,
+  BookingStatusType,
+};

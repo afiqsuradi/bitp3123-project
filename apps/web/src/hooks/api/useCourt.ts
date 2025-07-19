@@ -70,6 +70,13 @@ const fetchCourtBookings = async (courtId: number, date?: Date) => {
   return apiService.request<FetchCourtBookingsResponse>(endpoint)
 }
 
+const updateBookingStatus = async (bookingId: number, status: string) => {
+  return apiService.request(`/courts/bookings/${bookingId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  })
+}
+
 const addBookingToCourt = async ({
   courtId,
   date,
@@ -90,8 +97,38 @@ const addBookingToCourt = async ({
   )
 }
 
+export const useUpdateBookingStatus = () => {
+  const [isSuccess, setIsSuccess] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const mutation = useMutation({
+    mutationFn: ({
+      bookingId,
+      status,
+    }: {
+      bookingId: number
+      status: string
+    }) => updateBookingStatus(bookingId, status),
+    onSettled: () => {
+      setIsLoading(false)
+    },
+    onSuccess: () => {
+      setIsSuccess(true)
+    },
+    onMutate: () => {
+      setIsLoading(true)
+    },
+  })
+
+  return {
+    mutateUpdateBookingStatus: mutation.mutate,
+    isLoading,
+    setIsSuccess,
+    isSuccess,
+  }
+}
+
 export const useUserCourtBookings = () => {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['user-court-bookings'],
     queryFn: () => fetchUserCourtBookings(),
     staleTime: 1 * 69 * 1000,
@@ -101,6 +138,7 @@ export const useUserCourtBookings = () => {
     bookings: data?.data?.bookings || [],
     isLoading,
     error,
+    refetch,
   }
 }
 

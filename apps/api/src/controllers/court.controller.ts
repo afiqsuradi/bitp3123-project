@@ -1,7 +1,10 @@
 import CourtService from "../services/court.service";
 import { Request, Response } from "express";
 import { Booking, User } from "@prisma/client";
-import { BookingValidation } from "../utils/validation";
+import {
+  BookingStatusValidation,
+  BookingValidation,
+} from "../utils/validation";
 import { ZodError } from "zod";
 
 export default class CourtController {
@@ -162,6 +165,41 @@ export default class CourtController {
       return res.status(500).json({
         status: "error",
         message: "Failed to validate booking time",
+      });
+    }
+  }
+
+  public async updateCourtBookingStatus(req: Request, res: Response) {
+    try {
+      const user = req.user as User;
+      const { status } = req.body;
+      const { bookingId } = req.params;
+      const booking = await this.courtService.getBookingById(Number(bookingId));
+      if (!booking) {
+        throw new Error("Booking not found");
+      }
+      if (booking.userId !== user.id && user.role.toLowerCase() !== "admin") {
+        throw new Error("You are not authorized to update this booking");
+      }
+      const validatedStatus = BookingStatusValidation.parse(status);
+      const result = await this.courtService.updateCourtBookingStatus(
+        Number(bookingId),
+        validatedStatus,
+      );
+      if (!result) {
+        throw new Error("Failed to update booking status");
+      }
+      return res.status(200).json({
+        status: "success",
+        data: {
+          booking: result,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to update booking",
       });
     }
   }

@@ -1,5 +1,5 @@
 import PrismaDatabase from "../utils/database";
-import { Booking, Court } from "@prisma/client";
+import { Booking, BookingStatus, Court } from "@prisma/client";
 
 export default class CourtService {
   private static instance_: CourtService;
@@ -299,5 +299,23 @@ export default class CourtService {
     } catch (error) {
       return { isValid: false, error: "Invalid date or time format" };
     }
+  }
+
+  public async updateCourtBookingStatus(
+    bookingId: number,
+    status: BookingStatus,
+  ) {
+    return this.database.getPrismaClient().booking.update({
+      where: { id: bookingId },
+      data: {
+        status,
+      },
+    });
+  }
+
+  public getBookingById(bookingId: number) {
+    return this.database
+      .getPrismaClient()
+      .booking.findUnique({ where: { id: bookingId } });
   }
 }
