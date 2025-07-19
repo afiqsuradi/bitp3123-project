@@ -28,7 +28,6 @@ jobs:
         run: |
           npm install
           npm run build
-          npm prune --production
 
       # - name: Zip artifact for deployment
       #   run: zip release.zip ./* -r
@@ -40,8 +39,6 @@ jobs:
           cp apps/api/package.json deployment_package/
           cp apps/api/package-lock.json deployment_package/
           cp -r apps/api/prisma deployment_package/
-          # FUCK IT IMMA GO BALLS
-          cp -r apps/api/node_modules deployment_package/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -64,7 +61,7 @@ jobs:
 
       # - name: Unzip artifact for deployment
       #   run: unzip release.zip
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -79,5 +76,3 @@ jobs:
           app-name: 'courtbook-rest'
           slot-name: 'Production'
           package: .
-          startup-command: 'npm run start'
-          
