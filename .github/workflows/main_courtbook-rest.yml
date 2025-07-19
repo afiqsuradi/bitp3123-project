@@ -68,5 +68,5 @@ jobs:
         with:
           app-name: 'courtbook-rest'
           slot-name: 'Production'
-          package: .
+          package: './apps/api'
           
