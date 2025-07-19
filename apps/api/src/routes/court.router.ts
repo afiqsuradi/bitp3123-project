@@ -9,9 +9,17 @@ export default class CourtRouter implements RouterInterface {
   constructor() {
     this.router = Router();
     this.courtController = new CourtController();
+    this.registerRoutes();
   }
 
   public getRouter() {
     return this.router;
+  }
+
+  private registerRoutes() {
+    this.router.get(
+      "/",
+      this.courtController.getAllCourts.bind(this.courtController),
+    );
   }
 }
