@@ -83,7 +83,7 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_98CDEE2F8AA94234B53B1A096CBD5941 }}
 
       - name: Configure Azure App Settings
-        uses: azure/appservice-settings@v2
+        uses: azure/appservice-settings@v1
         with:
           app-name: 'courtbook-rest'
           slot-name: 'Production'
@@ -103,7 +103,6 @@ jobs:
           app-name: 'courtbook-rest'
           slot-name: 'Production'
           package: .
-          runtime: 'node'
           startup-command: 'node dist/index.js'
       
       - name: Run Prisma migrations
