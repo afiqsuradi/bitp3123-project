@@ -2,12 +2,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useUserStore } from '@/hooks/useUserStore'
 import { Badge } from '@/components/ui/badge.tsx'
 import { CourtCard } from '@/components/ui/CourtCard.tsx'
+import { useCourts } from '@/hooks/api/useCourt.ts'
+import { CourtCardSkeleton } from '@/components/ui/CourtCardSkeleton.tsx'
 export const Route = createFileRoute('/')({
   component: App,
 })
 
 function App() {
   const { isLoading } = useUserStore()
+  const { courts, isLoading: isLoadingCourts } = useCourts()
   if (isLoading) return <div>Loading...</div>
   return (
     <main className="flex flex-col justify-center bg-background min-h-lvh">
@@ -39,9 +42,16 @@ function App() {
       </section>
       <section className="flex justify-center items-center mb-12 flex-1 align-center">
         <div className="container grid grid-cols-3">
-          <CourtCard />
-          <CourtCard />
-          <CourtCard />
+          {isLoadingCourts ?? (
+            <>
+              <CourtCardSkeleton />
+              <CourtCardSkeleton />
+              <CourtCardSkeleton />
+            </>
+          )}
+          {courts &&
+            courts.length > 0 &&
+            courts.map((court) => <CourtCard courts={court} />)}
         </div>
       </section>
     </main>

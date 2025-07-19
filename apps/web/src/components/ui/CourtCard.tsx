@@ -4,19 +4,36 @@ import { GiTennisCourt } from 'react-icons/gi'
 import { HiOutlineLocationMarker } from 'react-icons/hi'
 import { GoClock } from 'react-icons/go'
 import { Button } from '@/components/ui/button.tsx'
+import type { Court } from '@/types/court.type.ts'
+import { capitalizeFirstLetter, cn } from '@/lib/utils.ts'
 
-export function CourtCard() {
+interface Props {
+  courts: Court
+}
+
+export function CourtCard({ courts }: Props) {
   return (
     <Card className="max-w-md py-0 overflow-y-auto">
       <CardHeader className="bg-primary/20 flex-1 pt-6 flex flex-col">
-        <Badge className="bg-green-600 font-semibold">Available</Badge>
+        <Badge
+          className={cn(
+            'font-semibold',
+            courts.status.toLowerCase() === 'available'
+              ? 'bg-green-600'
+              : courts.status.toLowerCase() === 'maintenance'
+                ? 'bg-yellow-600'
+                : 'bg-red-600',
+          )}
+        >
+          {capitalizeFirstLetter(courts.status)}
+        </Badge>
         <GiTennisCourt className="h-24 w-24 text-primary/60 mx-auto mb-6" />
       </CardHeader>
       <CardContent className="space-y-3">
-        <h3 className="font-bold text-lg">Court Alpha</h3>
+        <h3 className="font-bold text-lg">{courts.name}</h3>
         <div className="flex flex-row gap-1 items-center text-sm text-foreground/70">
           <HiOutlineLocationMarker className="h-4 w-4" />
-          <p>Building A, Floor 1</p>
+          <p>{courts.location}</p>
         </div>
       </CardContent>
       <CardFooter className="pb-6 flex justify-between items-center">
@@ -25,7 +42,18 @@ export function CourtCard() {
           Available Now
         </div>
         <div>
-          <Button variant="default">Book Now</Button>
+          <Button
+            variant={
+              courts.status.toLowerCase() === 'available'
+                ? 'default'
+                : 'outline'
+            }
+            disabled={courts.status.toLowerCase() !== 'available'}
+          >
+            {courts.status.toLowerCase() === 'available'
+              ? 'Book Now'
+              : 'Unavailable'}
+          </Button>
         </div>
       </CardFooter>
     </Card>

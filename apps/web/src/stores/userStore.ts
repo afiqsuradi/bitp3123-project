@@ -46,7 +46,7 @@ const loadInitialState = async () => {
 const initialState: UserState = {
   user: null,
   isLoggedIn: false,
-  isLoading: false,
+  isLoading: true,
 }
 
 export const userStore = new Store<UserState>(initialState)
