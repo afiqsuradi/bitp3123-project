@@ -3,6 +3,7 @@ import { config } from "../config";
 import UserRouter from "../routes/user.router";
 import RouterInterface from "../routes/router.interface";
 import AuthRouter from "../routes/auth.router";
+import CourtRouter from "../routes/court.router";
 
 interface Route {
   path: string;
@@ -14,6 +15,7 @@ export default class Routes {
   private routes: Route[] = [
     { path: "users", router: new UserRouter() },
     { path: "auth", router: new AuthRouter() },
+    { path: "courts", router: new CourtRouter() },
   ];
 
   constructor(application: Express) {

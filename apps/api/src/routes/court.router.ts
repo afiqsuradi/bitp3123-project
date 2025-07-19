@@ -1,0 +1,17 @@
+import RouterInterface from "./router.interface";
+import { Router } from "express";
+import CourtController from "../controllers/court.controller";
+
+export default class CourtRouter implements RouterInterface {
+  private router: Router;
+  private courtController: CourtController;
+
+  constructor() {
+    this.router = Router();
+    this.courtController = new CourtController();
+  }
+
+  public getRouter() {
+    return this.router;
+  }
+}
