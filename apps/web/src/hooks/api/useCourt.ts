@@ -1,8 +1,10 @@
 import type { Court } from '@/types/court.type.ts'
 import type { Booking } from '@/types/booking.type.ts'
 import { apiService } from '@/services/api.service.ts'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
+import { ApiError } from '@/types/errors.type.ts'
+import { useState } from 'react'
 
 interface FetchCourtsResponse {
   status: string
@@ -25,6 +27,20 @@ interface FetchCourtBookingsResponse {
   }
 }
 
+interface AddBookingToCourtRequest {
+  courtId: number
+  date: string
+  time: string
+  duration: number
+}
+
+interface AddBookingToCourtResponse {
+  status: string
+  data: {
+    booking: Booking
+  }
+}
+
 const fetchCourts = async () => {
   return apiService.request<FetchCourtsResponse>('/courts')
 }
@@ -39,6 +55,26 @@ const fetchCourtBookings = async (courtId: number, date?: Date) => {
     : `/courts/${courtId}/bookings`
 
   return apiService.request<FetchCourtBookingsResponse>(endpoint)
+}
+
+const addBookingToCourt = async ({
+  courtId,
+  date,
+  time,
+  duration,
+}: AddBookingToCourtRequest) => {
+  return apiService.request<AddBookingToCourtResponse>(
+    `/courts/${courtId}/bookings`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        courtId,
+        date,
+        time,
+        duration,
+      }),
+    },
+  )
 }
 
 export const useCourts = () => {
@@ -85,5 +121,57 @@ export const useCourtBookings = (courtId: number, date?: Date) => {
     isLoading,
     error,
     refetch,
+  }
+}
+
+export const useAddBookingToCourt = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const initialValidationError = {
+    date: '',
+    time: '',
+    duration: '',
+  }
+  const [error, setError] = useState<string | null>(null)
+  const [validationError, setValidationError] = useState<{
+    date: string
+    time: string
+    duration: string
+  }>(initialValidationError)
+  const mutation = useMutation({
+    mutationFn: ({
+      courtId,
+      date,
+      time,
+      duration,
+    }: AddBookingToCourtRequest) => {
+      setIsLoading(true)
+      return addBookingToCourt({ courtId, date, time, duration })
+    },
+    onSuccess: (data) => {
+      console.log(data)
+    },
+    onError: (error: ApiError) => {
+      if (error.status === 400 && error.response?.errors) {
+        for (const fieldError of error.response.errors) {
+          setValidationError((prev) => ({
+            ...prev,
+            [fieldError.field]: fieldError.message,
+          }))
+        }
+        return
+      }
+      setError(error.message)
+    },
+    onSettled: () => {
+      setIsLoading(false)
+    },
+  })
+
+  return {
+    mutateAddBooking: mutation.mutate,
+    error,
+    validationError,
+    setValidationError,
+    isLoading,
   }
 }

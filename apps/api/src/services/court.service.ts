@@ -139,4 +139,151 @@ export default class CourtService {
       return bookings;
     }
   }
+
+  private async hasTimeOverlap(
+    courtId: number,
+    startTime: Date,
+    endTime: Date,
+    excludeBookingId?: number,
+  ): Promise<boolean> {
+    const overlappingBookings = await this.database
+      .getPrismaClient()
+      .booking.findMany({
+        where: {
+          courtId,
+          id: excludeBookingId ? { not: excludeBookingId } : undefined,
+          status: {
+            in: ["PENDING", "CONFIRMED"],
+          },
+          OR: [
+            {
+              AND: [
+                { startTime: { lte: startTime } },
+                { endTime: { gt: startTime } },
+              ],
+            },
+            {
+              AND: [
+                { startTime: { lt: endTime } },
+                { endTime: { gte: endTime } },
+              ],
+            },
+            {
+              AND: [
+                { startTime: { gte: startTime } },
+                { endTime: { lte: endTime } },
+              ],
+            },
+          ],
+        },
+      });
+    return overlappingBookings.length > 0;
+  }
+
+  public async createBooking(data: {
+    userId: number;
+    courtId: number;
+    date: string;
+    time: string;
+    duration: number;
+  }): Promise<Booking> {
+    const { userId, courtId, date, time, duration } = data;
+
+    const bookingDate = new Date(date);
+    const [hours, minutes] = time.split(":").map(Number);
+
+    const startTime = new Date(bookingDate);
+    startTime.setHours(hours, minutes, 0, 0);
+
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + duration);
+
+    const court = await this.database.getPrismaClient().court.findUnique({
+      where: { id: courtId },
+    });
+
+    if (!court) {
+      throw new Error("Court not found");
+    }
+
+    if (court.status !== "AVAILABLE") {
+      throw new Error("Court is not available for booking");
+    }
+
+    const hasOverlap = await this.hasTimeOverlap(courtId, startTime, endTime);
+    if (hasOverlap) {
+      throw new Error("Selected time slot conflicts with existing booking");
+    }
+
+    const startHour = startTime.getHours();
+    const endHour = endTime.getHours();
+
+    if (startHour < 6 || endHour > 22) {
+      throw new Error("Bookings are only allowed between 6 AM and 10 PM");
+    }
+
+    const booking = await this.database.getPrismaClient().booking.create({
+      data: {
+        userId,
+        courtId,
+        startTime,
+        endTime,
+        status: "PENDING",
+      },
+    });
+
+    return booking;
+  }
+
+  public async validateBookingTime(data: {
+    courtId: number;
+    date: string;
+    time: string;
+    duration: number;
+    excludeBookingId?: number;
+  }): Promise<{ isValid: boolean; error?: string }> {
+    const { courtId, date, time, duration, excludeBookingId } = data;
+
+    try {
+      const bookingDate = new Date(date);
+      const [hours, minutes] = time.split(":").map(Number);
+
+      const startTime = new Date(bookingDate);
+      startTime.setHours(hours, minutes, 0, 0);
+
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + duration);
+
+      if (startTime < new Date()) {
+        return { isValid: false, error: "Cannot book time slots in the past" };
+      }
+
+      const startHour = startTime.getHours();
+      const endHour = endTime.getHours();
+
+      if (startHour < 6 || endHour > 22) {
+        return {
+          isValid: false,
+          error: "Bookings are only allowed between 6 AM and 10 PM",
+        };
+      }
+
+      const hasOverlap = await this.hasTimeOverlap(
+        courtId,
+        startTime,
+        endTime,
+        excludeBookingId,
+      );
+      if (hasOverlap) {
+        return {
+          isValid: false,
+          error: "Selected time slot conflicts with existing booking",
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      return { isValid: false, error: "Invalid date or time format" };
+    }
+  }
 }

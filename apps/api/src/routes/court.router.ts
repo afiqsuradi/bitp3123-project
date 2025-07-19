@@ -1,6 +1,7 @@
 import RouterInterface from "./router.interface";
 import { Router } from "express";
 import CourtController from "../controllers/court.controller";
+import passport from "passport";
 
 export default class CourtRouter implements RouterInterface {
   private router: Router;
@@ -30,6 +31,17 @@ export default class CourtRouter implements RouterInterface {
     this.router.get(
       "/:courtId/bookings",
       this.courtController.getCourtBookingsById.bind(this.courtController),
+    );
+
+    this.router.post(
+      "/:courtId/bookings",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.createBooking.bind(this.courtController),
+    );
+
+    this.router.post(
+      "/:courtId/bookings/validate",
+      this.courtController.validateBookingTime.bind(this.courtController),
     );
   }
 }

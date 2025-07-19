@@ -64,7 +64,7 @@ export default class AuthController {
       const cookieOptions = {
         httpOnly: true,
         secure: !configService.isProduction(),
-        sameSite: "strict" as const,
+        sameSite: "none" as const,
         maxAge: 6 * 24 * 60 * 60 * 1000, // 6 days expiration
         path: "/",
       };

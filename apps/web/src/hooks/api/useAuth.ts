@@ -119,7 +119,7 @@ export const useLogout = () => {
     onSuccess: () => {
       queryClient.clear()
       clearUser()
-      navigate({ to: '/auth/login' })
+      navigate({ to: '/', reloadDocument: true })
     },
     onError: (error) => {
       console.error('Logout error:', error)

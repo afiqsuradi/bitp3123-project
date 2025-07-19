@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCourt } from '@/hooks/api/useCourt.ts'
 import { Card, CardContent, CardHeader } from '@/components/ui/card.tsx'
 import { capitalizeFirstLetter, cn, isNumber } from '@/lib/utils.ts'
@@ -7,6 +7,8 @@ import { HiOutlineLocationMarker } from 'react-icons/hi'
 import { GiTennisCourt } from 'react-icons/gi'
 import { IoCalendarClearOutline } from 'react-icons/io5'
 import { CourtBookingForm } from '@/components/court/CourtBookingForm.tsx'
+import { useUserStore } from '@/hooks/useUserStore.ts'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/court/$courtId')({
   beforeLoad: ({ params }) => {
@@ -22,8 +24,17 @@ export const Route = createFileRoute('/court/$courtId')({
 })
 
 function RouteComponent() {
+  const navigate = useNavigate()
+  const { isLoggedIn, isLoading: isUserDataLoading } = useUserStore()
   const { courtId } = Route.useParams()
   const { court, isLoading } = useCourt(Number(courtId))
+
+  useEffect(() => {
+    if (!isUserDataLoading && !isLoggedIn) {
+      navigate({ to: '/auth/login' })
+    }
+  }, [isUserDataLoading])
+
   if (isLoading) return <div>Loading...</div>
 
   if (!court)
@@ -34,7 +45,7 @@ function RouteComponent() {
     )
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-background overflow-y-auto py-20">
+    <div className="flex justify-center items-center min-h-fit pb-12 bg-background overflow-y-auto ">
       <div className="container mx-auto grid grid-rows-2 gap-4 place-items-center">
         <Card className="max-w-xl w-full">
           <CardHeader>

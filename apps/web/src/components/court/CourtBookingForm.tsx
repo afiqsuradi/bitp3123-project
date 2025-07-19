@@ -17,10 +17,10 @@ import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar.tsx'
 import { useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { IoCalendarClearOutline } from 'react-icons/io5'
-import { cn } from '@/lib/utils.ts'
-import { useCourtBookings } from '@/hooks/api/useCourt.ts'
+import { cn, minutesToTime, timeToMinutes } from '@/lib/utils.ts'
+import { useAddBookingToCourt, useCourtBookings } from '@/hooks/api/useCourt.ts'
 import { Input } from '@/components/ui/input.tsx'
 import type { Booking } from '@/types/booking.type.ts'
 
@@ -46,19 +46,15 @@ export function CourtBookingForm({ courtId }: CourtBookingFormProps) {
   const [selectedTime, setSelectedTime] = useState<string>('10:30')
   const [selectedDuration, setSelectedDuration] = useState<string>('')
   const [errors, setErrors] = useState<FormErrors>({})
-
-  const { bookings, isLoading, error } = useCourtBookings(courtId, date)
-
-  const timeToMinutes = (timeString: string): number => {
-    const [hours, minutes] = timeString.split(':').map(Number)
-    return hours * 60 + minutes
-  }
-
-  const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
-  }
+  const {
+    mutateAddBooking,
+    validationError,
+    isLoading: isAddingBooking,
+  } = useAddBookingToCourt()
+  const { bookings, isLoading, error, refetch } = useCourtBookings(
+    courtId,
+    date,
+  )
 
   const isTimeSlotBooked = useMemo(() => {
     if (!bookings || !selectedTime || !date) return false
@@ -128,100 +124,150 @@ export function CourtBookingForm({ courtId }: CourtBookingFormProps) {
   useEffect(() => {
     const newErrors: FormErrors = {}
 
-    if (selectedTime) {
-      if (isTimeSlotBooked) {
-        newErrors.time = 'This time slot is already booked'
-      }
+    if (selectedTime && isTimeSlotBooked) {
+      newErrors.time = 'This time slot is already booked'
     }
 
     if (availableDurations.length === 0 && selectedTime && !isTimeSlotBooked) {
       newErrors.time = 'No available time slots after this time'
-      setSelectedDuration('')
     }
 
+    setErrors(newErrors)
+  }, [isTimeSlotBooked, availableDurations.length, selectedTime])
+
+  // Reset duration when it's no longer available
+  useEffect(() => {
     if (
       selectedDuration &&
       !availableDurations.find((d) => d.value === selectedDuration)
     ) {
       setSelectedDuration('')
     }
+  }, [availableDurations, selectedDuration])
 
-    setErrors(newErrors)
-  }, [isTimeSlotBooked, availableDurations, selectedTime, selectedDuration])
+  useEffect(() => {
+    setErrors((prev) => {
+      return {
+        time: validationError?.time ?? prev.time,
+        date: validationError?.date ?? prev.date,
+        duration: validationError?.duration ?? prev.duration,
+      }
+    })
+  }, [validationError])
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedTime(e.target.value)
-    setSelectedDuration('') // Reset duration when time changes
+  const handleTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSelectedTime(e.target.value)
+      setSelectedDuration('')
+    },
+    [],
+  )
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    if (!date || !selectedTime || !selectedDuration) {
+      return
+    }
+
+    const formattedDate = format(date, 'yyyy-MM-dd')
+
+    mutateAddBooking(
+      {
+        courtId,
+        date: formattedDate,
+        time: selectedTime,
+        duration: parseInt(selectedDuration),
+      },
+      {
+        onSuccess: () => {
+          refetch()
+          navigate({ to: '/' })
+        },
+      },
+    )
   }
 
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <div className="flex flex-col gap-5">
-        <div className="flex flex-row justify-between items-center gap-2 flex-1">
-          <div className="flex flex-col gap-3 flex-1">
-            <Label htmlFor="date" className="px-1">
-              Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={'outline'}
-                  className={cn(
-                    'w-[240px] pl-3 text-left font-normal',
-                    !date && 'text-muted-foreground',
-                  )}
-                >
-                  {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                  <IoCalendarClearOutline className="ml-auto h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={(selectedDate) => {
-                    setDate(selectedDate)
-                    setSelectedDuration('') // Reset duration when date changes
-                  }}
-                  disabled={(date) => {
-                    const today = new Date()
-                    const currentMonth = today.getMonth()
-                    const currentYear = today.getFullYear()
+        <div>
+          <div className="flex flex-row justify-between items-center gap-2 flex-1">
+            <div className="flex flex-col gap-3 flex-1">
+              <Label htmlFor="date" className="px-1">
+                Date
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-[240px] pl-3 text-left font-normal',
+                      !date && 'text-muted-foreground',
+                    )}
+                  >
+                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                    <IoCalendarClearOutline className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(selectedDate) => {
+                      setDate(selectedDate)
+                      setSelectedDuration('') // Reset duration when date changes
+                    }}
+                    disabled={(date) => {
+                      const today = new Date()
+                      const currentMonth = today.getMonth()
+                      const currentYear = today.getFullYear()
 
-                    return (
-                      date.getMonth() !== currentMonth ||
-                      date.getFullYear() !== currentYear ||
-                      date < today
-                    )
-                  }}
-                  captionLayout="dropdown"
-                />
-              </PopoverContent>
-            </Popover>
-            {errors.date && (
-              <p className="text-sm text-red-500 px-1">{errors.date}</p>
-            )}
-          </div>
+                      return (
+                        date.getMonth() !== currentMonth ||
+                        date.getFullYear() !== currentYear ||
+                        date < today
+                      )
+                    }}
+                    captionLayout="dropdown"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="flex flex-col gap-3 flex-1">
-            <Label htmlFor="time-picker" className="px-1">
-              Time
-            </Label>
-            <Input
-              type="time"
-              id="time-picker"
-              step="1800" // 30 minutes step
-              value={selectedTime}
-              onChange={handleTimeChange}
-              className={cn(
-                'bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none',
-                errors.time && 'border-red-500',
-              )}
-            />
-            {errors.time && (
-              <p className="text-sm text-red-500 px-1">{errors.time}</p>
-            )}
+            <div className="flex flex-col gap-3 flex-1">
+              <Label htmlFor="time-picker" className="px-1">
+                Time
+              </Label>
+              <Input
+                type="time"
+                id="time-picker"
+                step="1800" // 30 minutes step
+                value={selectedTime}
+                onChange={handleTimeChange}
+                className={cn(
+                  'bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none',
+                  errors.time && 'border-red-500',
+                )}
+              />
+            </div>
           </div>
+          {errors.date || errors.time ? (
+            <div className="flex flex-row justify-between items-center gap-2 flex-1 mt-0">
+              <div className="flex flex-col gap-3 flex-1">
+                {errors.date && (
+                  <p className="text-sm text-red-500 px-1">{errors.date}</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-3 flex-1">
+                {errors.time && (
+                  <p className="text-sm text-red-500 px-1">{errors.time}</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 flex-1">
@@ -282,7 +328,12 @@ export function CourtBookingForm({ courtId }: CourtBookingFormProps) {
         <div className="flex flex-col items-center gap-2">
           <Button
             className="w-full"
-            disabled={!selectedTime || !selectedDuration || !!errors.time}
+            disabled={
+              !selectedTime ||
+              !selectedDuration ||
+              !!errors.time ||
+              isAddingBooking
+            }
             type="submit"
           >
             Confirm Booking
