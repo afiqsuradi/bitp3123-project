@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useUserStore } from '@/hooks/useUserStore'
-import { Badge } from '@/components/ui/badge.tsx'
+// import { Badge } from '@/components/ui/badge.tsx'
 import { CourtCard } from '@/components/ui/CourtCard.tsx'
 import { useCourts } from '@/hooks/api/useCourt.ts'
 import { CourtCardSkeleton } from '@/components/ui/CourtCardSkeleton.tsx'
@@ -23,22 +23,22 @@ function App() {
           Premium indoor and outdoor courts available for booking. Professional
           facilities with modern amenities.
         </p>
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          <Badge
-            variant="outline"
-            className="border-green-600 text-green-600 bg-green-100 w-full"
-          >
-            <span className="w-2 h-2 rounded-full bg-green-600" />
-            Available
-          </Badge>
-          <Badge
-            className="border-yellow-600 text-yellow-600 bg-yellow-100 w-full"
-            variant="outline"
-          >
-            <span className="w-2 h-2 rounded-full bg-yellow-600" />
-            In Use
-          </Badge>
-        </div>
+        {/*<div className="grid grid-cols-2 gap-4 mt-4">*/}
+        {/*  <Badge*/}
+        {/*    variant="outline"*/}
+        {/*    className="border-green-600 text-green-600 bg-green-100 w-full"*/}
+        {/*  >*/}
+        {/*    <span className="w-2 h-2 rounded-full bg-green-600" />*/}
+        {/*    Available*/}
+        {/*  </Badge>*/}
+        {/*  <Badge*/}
+        {/*    className="border-yellow-600 text-yellow-600 bg-yellow-100 w-full"*/}
+        {/*    variant="outline"*/}
+        {/*  >*/}
+        {/*    <span className="w-2 h-2 rounded-full bg-yellow-600" />*/}
+        {/*    In Use*/}
+        {/*  </Badge>*/}
+        {/*</div>*/}
       </section>
       <section className="flex justify-center items-center mb-12 flex-1 align-center">
         <div className="container grid grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3">

@@ -99,6 +99,20 @@ export default class CourtService {
     return court;
   }
 
+  public getCourtBookingsByUserId(userId: number): Promise<Booking[]> {
+    return this.database.getPrismaClient().booking.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        court: true,
+      },
+      orderBy: {
+        startTime: "asc",
+      },
+    });
+  }
+
   // weird way for method overload? bruh
   public getCourtBookingsById(id: number, date: string): Promise<Booking[]>;
   public getCourtBookingsById(id: number): Promise<Booking[]>;

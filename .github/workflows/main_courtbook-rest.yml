@@ -26,7 +26,9 @@ jobs:
       - name: npm install and build
         working-directory: ./apps/api
         run: |
-          npm install
+          npm ci
+          npx prisma generate
+          npx prisma migrate deploy
           npm run build
 
       # - name: Zip artifact for deployment
@@ -39,9 +41,18 @@ jobs:
           cp apps/api/package.json deployment_package/
           cp apps/api/package-lock.json deployment_package/
           cp -r apps/api/prisma deployment_package/
-          # i think i know what went wrong
-          mkdir -p deployment_package/node_modules
-          cp -r apps/api/node_modules/* deployment_package/node_modules
+
+          # Copy node_modules with proper permissions
+          cp -r apps/api/node_modules deployment_package/
+          
+          # Fix permissions for Prisma binaries
+          chmod -R +x deployment_package/node_modules/.prisma
+          chmod -R +x deployment_package/node_modules/@prisma/engines
+          
+          # Verify Prisma engine exists
+          echo "Verifying Prisma engine:"
+          ls -la deployment_package/node_modules/.prisma/client
+          ls -la deployment_package/node_modules/@prisma/engines
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -72,6 +83,20 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_55A4DB056A744668B483070F53971112 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_98CDEE2F8AA94234B53B1A096CBD5941 }}
 
+      - name: Configure Azure App Settings
+        uses: azure/appservice-settings@v2
+        with:
+          app-name: 'courtbook-rest'
+          slot-name: 'Production'
+          app-settings-json: |
+            [
+              {"name": "WEBSITE_RUN_FROM_PACKAGE", "value": "0", "slotSetting": false},
+              {"name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false", "slotSetting": false},
+              {"name": "PRISMA_CLIENT_ENGINE_TYPE", "value": "binary", "slotSetting": false},
+              {"name": "WEBSITE_NODE_DEFAULT_VERSION", "value": "~22", "slotSetting": false},
+              {"name": "LinuxFxVersion", "value": "NODE|22-lts", "slotSetting": false}
+            ]
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -79,4 +104,10 @@ jobs:
           app-name: 'courtbook-rest'
           slot-name: 'Production'
           package: .
+          runtime: 'node'
           startup-command: 'node dist/index.js'
+      
+      - name: Run Prisma migrations
+        run: |
+          az webapp ssh --resource-group CourtBookApi-Resource --name courtbook-rest \
+            --command "cd /home/site/wwwroot && npx prisma migrate deploy"

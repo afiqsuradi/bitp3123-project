@@ -83,6 +83,26 @@ export default class CourtController {
     }
   }
 
+  public async getCourtBookingsByUserId(req: Request, res: Response) {
+    const user = req.user as User;
+    await this.courtService
+      .getCourtBookingsByUserId(user.id)
+      .then((bookings) => {
+        return res.status(200).json({
+          status: "success",
+          data: {
+            bookings: bookings,
+          },
+        });
+      })
+      .catch((error) => {
+        return res.status(500).json({
+          status: "error",
+          message: error || "An unexpected error occurred",
+        });
+      });
+  }
+
   public async createBooking(req: Request, res: Response) {
     try {
       const validationResult = BookingValidation.parse(req.body);

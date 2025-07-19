@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import { Button } from './ui/button'
+import { PiCourtBasketballFill } from 'react-icons/pi'
+import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/hooks/useUserStore'
 import { useLogout } from '@/hooks/api/useAuth.ts'
-import { PiCourtBasketballFill } from 'react-icons/pi'
+import { Separator } from '@/components/ui/separator'
 
 export default function Header() {
   const { isLoggedIn } = useUserStore()
@@ -19,9 +20,15 @@ export default function Header() {
         </Link>
         <ol className="flex flex-row gap-4">
           {isLoggedIn ? (
+            <>
+            <Link to="/bookings">
+            <Button variant="outline">My Bookings</Button>
+            </Link>
+            <Separator orientation="vertical" />
             <Button variant="outline" onClick={() => logout()}>
               Logout
             </Button>
+            </>
           ) : (
             <>
               <Link to="/auth/login">

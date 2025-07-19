@@ -1,5 +1,5 @@
 import type { Court } from '@/types/court.type.ts'
-import type { Booking } from '@/types/booking.type.ts'
+import type { Booking, UserBooking } from '@/types/booking.type.ts'
 import { apiService } from '@/services/api.service.ts'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
@@ -27,6 +27,13 @@ interface FetchCourtBookingsResponse {
   }
 }
 
+interface FetchUserCourtBookingsResponse {
+  status: string
+  data: {
+    bookings: UserBooking[]
+  }
+}
+
 interface AddBookingToCourtRequest {
   courtId: number
   date: string
@@ -39,6 +46,12 @@ interface AddBookingToCourtResponse {
   data: {
     booking: Booking
   }
+}
+
+const fetchUserCourtBookings = async () => {
+  return apiService.request<FetchUserCourtBookingsResponse>(
+    `/courts/bookings/me`,
+  )
 }
 
 const fetchCourts = async () => {
@@ -75,6 +88,20 @@ const addBookingToCourt = async ({
       }),
     },
   )
+}
+
+export const useUserCourtBookings = () => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['user-court-bookings'],
+    queryFn: () => fetchUserCourtBookings(),
+    staleTime: 1 * 69 * 1000,
+    retry: 3,
+  })
+  return {
+    bookings: data?.data?.bookings || [],
+    isLoading,
+    error,
+  }
 }
 
 export const useCourts = () => {

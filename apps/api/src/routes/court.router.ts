@@ -33,6 +33,12 @@ export default class CourtRouter implements RouterInterface {
       this.courtController.getCourtBookingsById.bind(this.courtController),
     );
 
+    this.router.get(
+      "/bookings/me",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.getCourtBookingsByUserId.bind(this.courtController),
+    );
+
     this.router.post(
       "/:courtId/bookings",
       passport.authenticate("jwt", { session: false }),
