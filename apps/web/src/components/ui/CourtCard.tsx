@@ -6,12 +6,14 @@ import { GoClock } from 'react-icons/go'
 import { Button } from '@/components/ui/button.tsx'
 import type { Court } from '@/types/court.type.ts'
 import { capitalizeFirstLetter, cn } from '@/lib/utils.ts'
+import { useNavigate } from '@tanstack/react-router'
 
 interface Props {
   courts: Court
 }
 
 export function CourtCard({ courts }: Props) {
+  const navigate = useNavigate()
   return (
     <Card className="max-w-md py-0 overflow-y-auto">
       <CardHeader className="bg-primary/20 flex-1 pt-6 flex flex-col">
@@ -49,6 +51,9 @@ export function CourtCard({ courts }: Props) {
                 : 'outline'
             }
             disabled={courts.status.toLowerCase() !== 'available'}
+            onClick={() => {
+              navigate({ to: `/court/${courts.id}` })
+            }}
           >
             {courts.status.toLowerCase() === 'available'
               ? 'Book Now'

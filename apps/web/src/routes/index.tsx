@@ -41,7 +41,7 @@ function App() {
         </div>
       </section>
       <section className="flex justify-center items-center mb-12 flex-1 align-center">
-        <div className="container grid grid-cols-3">
+        <div className="container grid grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3">
           {isLoadingCourts ?? (
             <>
               <CourtCardSkeleton />
@@ -51,7 +51,7 @@ function App() {
           )}
           {courts &&
             courts.length > 0 &&
-            courts.map((court) => <CourtCard courts={court} />)}
+            courts.map((court) => <CourtCard key={court.id} courts={court} />)}
         </div>
       </section>
     </main>

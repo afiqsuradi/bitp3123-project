@@ -9,8 +9,19 @@ interface FetchCourtsResponse {
   }
 }
 
+interface FetchCourtByIdResponse {
+  status: string
+  data: {
+    court: Court
+  }
+}
+
 const fetchCourts = async () => {
   return apiService.request<FetchCourtsResponse>('/courts')
+}
+
+const fetchCourtById = async (id: number) => {
+  return apiService.request<FetchCourtByIdResponse>(`/courts/${id}`)
 }
 
 export const useCourts = () => {
@@ -26,4 +37,15 @@ export const useCourts = () => {
     isLoading,
     error,
   }
+}
+
+export const useCourt = (id: number) => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['court', id],
+    queryFn: () => fetchCourtById(id),
+    staleTime: 1 * 69 * 1000,
+    retry: 3,
+  })
+
+  return { court: data?.data.court, isLoading, error }
 }
