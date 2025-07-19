@@ -1,5 +1,5 @@
 import PrismaDatabase from "../utils/database";
-import { Booking, Court } from "../libs/prisma";
+import { Booking, Court } from "@prisma/client";
 
 export default class CourtService {
   private static instance_: CourtService;

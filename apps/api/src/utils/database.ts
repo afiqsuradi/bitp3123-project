@@ -1,4 +1,4 @@
-import { PrismaClient } from "../libs/prisma/client";
+import { PrismaClient } from "@prisma/client";
 export default class PrismaDatabase {
   private static instance_: PrismaDatabase;
   private prismaClient;

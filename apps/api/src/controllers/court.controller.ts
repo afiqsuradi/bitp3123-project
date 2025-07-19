@@ -1,6 +1,6 @@
 import CourtService from "../services/court.service";
 import { Request, Response } from "express";
-import { Booking } from "../libs/prisma";
+import { Booking } from "@prisma/client";
 
 export default class CourtController {
   private courtService: CourtService;

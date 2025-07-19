@@ -1,6 +1,6 @@
 import { UserService } from "../services/user.service";
 import { Request, Response } from "express";
-import { User } from "../libs/prisma";
+import { User } from "@prisma/client";
 import { UserRegistrationValidation } from "../utils/validation";
 import { ZodError } from "zod";
 import { RegistringUserType } from "../types/user.interface";

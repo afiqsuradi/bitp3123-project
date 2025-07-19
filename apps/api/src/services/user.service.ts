@@ -1,5 +1,5 @@
 import PrismaDatabase from "../utils/database";
-import { User } from "../libs/prisma";
+import { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { config } from "../config";

@@ -1,4 +1,4 @@
-import { PrismaClient, Role, CourtStatus } from "../src/libs/prisma";
+import { PrismaClient, Role, CourtStatus } from "@prisma/client";
 // @ts-ignore
 import bcrypt from "bcrypt";
 
