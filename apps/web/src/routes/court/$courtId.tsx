@@ -70,7 +70,7 @@ function RouteComponent() {
             <h1>Book Your Session</h1>
           </CardHeader>
           <CardContent>
-            <CourtBookingForm />
+            <CourtBookingForm courtId={court.id} />
           </CardContent>
         </Card>
       </div>

@@ -16,15 +16,23 @@ import {
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar.tsx'
-import { Input } from '@/components/ui/input.tsx'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { IoCalendarClearOutline } from 'react-icons/io5'
 import { cn } from '@/lib/utils.ts'
+import { useCourtBookings } from '@/hooks/api/useCourt.ts'
+import { Input } from '@/components/ui/input.tsx'
 
-export function CourtBookingForm() {
+interface CourtBookingFormProps {
+  courtId: number
+}
+
+export function CourtBookingForm({ courtId }: CourtBookingFormProps) {
   const navigate = useNavigate()
   const [date, setDate] = useState<Date | undefined>(new Date())
+
+  const { bookings, isLoading, error } = useCourtBookings(courtId, date)
+
   return (
     <form>
       <div className="flex flex-col gap-5">
@@ -82,6 +90,7 @@ export function CourtBookingForm() {
             />
           </div>
         </div>
+
         <div className="flex flex-col gap-3 flex-1">
           <Label htmlFor="duration-picker" className="px-1">
             Duration
@@ -114,6 +123,20 @@ export function CourtBookingForm() {
             Cancel Booking
           </Button>
         </div>
+
+        {isLoading && <div>Loading bookings...</div>}
+        {error && <div>Error loading bookings</div>}
+        {bookings && bookings.length > 0 && (
+          <div>
+            <h4>Existing bookings for this date:</h4>
+            {bookings.map((booking) => (
+              <div key={booking.id}>
+                {format(new Date(booking.startTime), 'HH:mm')} -{' '}
+                {format(new Date(booking.endTime), 'HH:mm')}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </form>
   )

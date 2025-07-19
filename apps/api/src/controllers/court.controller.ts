@@ -70,7 +70,7 @@ export default class CourtController {
       return res.status(200).json({
         status: "success",
         data: {
-          result,
+          bookings: result,
         },
       });
     } catch (error) {
