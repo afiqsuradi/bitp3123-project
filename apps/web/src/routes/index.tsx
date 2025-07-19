@@ -37,7 +37,7 @@ function App() {
           </Badge>
         </div>
       </section>
-      <section className="flex justify-center items-center mb-12 flex-1">
+      <section className="flex justify-center items-center mb-12 flex-1 align-center">
         <div className="container grid grid-cols-3">
           <CourtCard />
           <CourtCard />
