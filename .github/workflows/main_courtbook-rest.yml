@@ -27,7 +27,7 @@ jobs:
         working-directory: ./apps/api
         run: |
           npm install
-          npm run build --if-present
+          npm run build
           npm prune --production
 
       # - name: Zip artifact for deployment
@@ -40,6 +40,9 @@ jobs:
           cp apps/api/package.json deployment_package/
           cp apps/api/package-lock.json deployment_package/
           cp -r apps/api/prisma deployment_package/
+          mkdir -p deployment_package/node_modules/@prisma
+          cp -r apps/api/node_modules/@prisma/client deployment_package/node_modules/@prisma/
+          cp -r apps/api/node_modules/.prisma deployment_package/node_modules/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
