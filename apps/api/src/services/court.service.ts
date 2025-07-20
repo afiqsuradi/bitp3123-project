@@ -353,4 +353,57 @@ export default class CourtService {
       },
     });
   }
+
+  /**
+   * Get bookings that need status updates (for job monitoring)
+   */
+  public async getBookingsNeedingStatusUpdate(): Promise<{
+    pendingToCancel: Booking[];
+    confirmedToComplete: Booking[];
+  }> {
+    const currentTime = new Date();
+
+    const pendingToCancel = await this.database.getPrismaClient().booking.findMany({
+      where: {
+        status: BookingStatus.PENDING,
+        startTime: {
+          lt: currentTime
+        }
+      },
+      include: {
+        court: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        }
+      }
+    });
+
+    const confirmedToComplete = await this.database.getPrismaClient().booking.findMany({
+      where: {
+        status: BookingStatus.CONFIRMED,
+        endTime: {
+          lt: currentTime
+        }
+      },
+      include: {
+        court: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        }
+      }
+    });
+
+    return {
+      pendingToCancel,
+      confirmedToComplete
+    };
+  }
 }

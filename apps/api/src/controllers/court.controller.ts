@@ -6,11 +6,15 @@ import {
   BookingValidation,
 } from "../utils/validation";
 import { ZodError } from "zod";
+import { BookingStatusJob } from "../jobs/booking-status-job";
 
 export default class CourtController {
   private courtService: CourtService;
+  private bookingStatusJob: BookingStatusJob;
+  
   constructor() {
     this.courtService = CourtService.get();
+    this.bookingStatusJob = BookingStatusJob.get();
   }
 
   public getAllCourts(req: Request, res: Response) {
@@ -244,6 +248,40 @@ export default class CourtController {
         status: "error",
         message:
           error instanceof Error ? error.message : "Failed to retrieve bookings",
+      });
+    }
+  }
+
+  public async updateBookingStatuses(req: Request, res: Response) {
+    try {
+      const user = req.user as User;
+      
+      if (user.role.toLowerCase() !== "admin") {
+        return res.status(403).json({
+          status: "error",
+          message: "You are not authorized to access this resource",
+        });
+      }
+
+      // Get bookings that need status updates before running the job
+      const bookingsToUpdate = await this.courtService.getBookingsNeedingStatusUpdate();
+      
+      // Run the booking status update job manually
+      await this.bookingStatusJob.updateBookingStatuses();
+
+      return res.status(200).json({
+        status: "success",
+        message: "Booking statuses updated successfully",
+        data: {
+          pendingToCancelCount: bookingsToUpdate.pendingToCancel.length,
+          confirmedToCompleteCount: bookingsToUpdate.confirmedToComplete.length,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to update booking statuses",
       });
     }
   }

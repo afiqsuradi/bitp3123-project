@@ -42,6 +42,12 @@ export default class CourtRouter implements RouterInterface {
       this.courtController.updateCourtBookingStatus.bind(this.courtController),
     );
 
+    this.router.post(
+      "/bookings/update-statuses",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.updateBookingStatuses.bind(this.courtController),
+    );
+
     this.router.get(
       "/:courtId",
       this.courtController.getCourt.bind(this.courtController),

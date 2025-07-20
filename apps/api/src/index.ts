@@ -4,9 +4,11 @@ import Routes from "./startup/routes";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 import cors from "cors";
+import { BookingStatusJob } from "./jobs/booking-status-job";
 
 const app = express();
 const routes = new Routes(app);
+const bookingStatusJob = BookingStatusJob.get();
 
 app.use(
   cors({
@@ -40,6 +42,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const startServer = async () => {
   try {
+    // Initialize booking status job
+    await bookingStatusJob.initialize();
+    
     app.listen(config.port, () => {
       console.log(`Server is running on port ${config.port}`);
     });
