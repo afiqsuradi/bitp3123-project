@@ -9,6 +9,10 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  NODE_VERSION: '22.x'
+  WORKING_DIRECTORY: ./apps/web
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,33 +21,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/package-lock.json
 
       - name: Install dependencies for Web
-        run: |
-          cd apps/web  
-          npm install
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
 
       - name: Build Web (Vite + React)
-        run: |
-          cd apps/web
-          npm run build
-
-      - name: Zip artifact for deployment
-        run: |
-          cd apps/web/dist
-          zip -r ../../../release.zip .
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: ${{ env.WORKING_DIRECTORY }}/dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,10 +54,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: ./deployment
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -74,5 +69,5 @@ jobs:
         with:
           app-name: 'courtbook'
           slot-name: 'Production'
-          package: .
+          package: ./deployment
           
