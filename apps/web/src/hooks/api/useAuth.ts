@@ -37,6 +37,7 @@ interface RegisterResponse {
 }
 
 export const useRegister = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const initialValidationError = {
     name: '',
     password: '',
@@ -55,6 +56,12 @@ export const useRegister = () => {
       setValidationError(initialValidationError)
       setSuccess(null)
       return apiService.register(credentials)
+    },
+    onMutate: () => {
+      setIsLoading(true)
+    },
+    onSettled: () => {
+      setIsLoading(false)
     },
     onSuccess: (data) => {
       if (data.status === 'success') {
@@ -75,6 +82,7 @@ export const useRegister = () => {
     },
   })
   return {
+    isLoading,
     error,
     validationError,
     setValidationError,
@@ -86,10 +94,17 @@ export const useRegister = () => {
 export const useLogin = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const mutation = useMutation({
     mutationFn: (credentials: LoginRequest): Promise<LoginResponse> =>
       apiService.login(credentials),
+    onMutate: () => {
+      setIsLoading(true)
+    },
+    onSettled: () => {
+      setIsLoading(false)
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(['user'], data.data.loggedInUserData)
       setUser(data.data.loggedInUserData)
@@ -104,6 +119,7 @@ export const useLogin = () => {
     },
   })
   return {
+    isLoading,
     error,
     setError,
     mutateLogin: mutation.mutate,

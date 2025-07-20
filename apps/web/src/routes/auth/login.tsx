@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useLogin } from '@/hooks/api/useAuth'
+import { ImSpinner8 } from 'react-icons/im'
 
 export const Route = createFileRoute('/auth/login')({
   component: RouteComponent,
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/auth/login')({
 function RouteComponent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { error, setError, mutateLogin } = useLogin()
+  const { error, setError, mutateLogin, isLoading } = useLogin()
 
   const handleSubmit = () => {
     setError(null)
@@ -78,9 +79,14 @@ function RouteComponent() {
             <Button
               type="submit"
               className="w-full hover:cursor-pointer"
+              disabled={isLoading}
               onClick={() => handleSubmit()}
             >
-              Login
+              {isLoading ? (
+                <ImSpinner8 className="transform animate-spin" />
+              ) : (
+                'Login'
+              )}
             </Button>
             <Link to="/auth/register" className="w-full">
               <Button

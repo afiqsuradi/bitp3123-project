@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button.tsx'
 import { useRegister } from '@/hooks/api/useAuth.ts'
 import { type FormEvent, useEffect, useState } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert.tsx'
+import { ImSpinner8 } from 'react-icons/im'
 
 export const Route = createFileRoute('/auth/register')({
   component: RouteComponent,
@@ -39,6 +40,7 @@ function RouteComponent() {
     setValidationError,
     success,
     mutateRegister,
+    isLoading,
   } = useRegister()
   const [formData, setFormData] = useState<FormState>(initialState)
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -162,8 +164,16 @@ function RouteComponent() {
             </Alert>
           )}
           <div className="flex-col space-y-2 w-full">
-            <Button type="submit" className="w-full hover:cursor-pointer">
-              Register
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full hover:cursor-pointer"
+            >
+              {isLoading ? (
+                <ImSpinner8 className="transform animate-spin" />
+              ) : (
+                'Register'
+              )}
             </Button>
             <Link to="/auth/login" className="w-full">
               <Button
