@@ -1,6 +1,6 @@
 import CourtService from "../services/court.service";
 import { Request, Response } from "express";
-import { Booking, User } from "@prisma/client";
+import { Booking, BookingStatus, User } from "@prisma/client";
 import {
   BookingStatusValidation,
   BookingValidation,
@@ -164,7 +164,7 @@ export default class CourtController {
     } catch (error) {
       return res.status(500).json({
         status: "error",
-        message: "Failed to validate booking time",
+        message: error instanceof Error ? error.message : "Failed to validate booking time",
       });
     }
   }
@@ -200,6 +200,50 @@ export default class CourtController {
         status: "error",
         message:
           error instanceof Error ? error.message : "Failed to update booking",
+      });
+    }
+  }
+
+  public async getBookings(req: Request, res: Response) {
+    try {
+      const user = req.user as User;
+      
+      if (user.role.toLowerCase() !== "admin") {
+        return res.status(403).json({
+          status: "error",
+          message: "You are not authorized to access this resource",
+        });
+      }
+
+      const courtId = req.query.courtId ? Number(req.query.courtId) : undefined;
+      const status = req.query.status as BookingStatus | 'ALL' | undefined;
+
+      const filters: {
+        courtId?: number;
+        status?: BookingStatus | 'ALL';
+      } = {};
+
+      if (courtId) {
+        filters.courtId = courtId;
+      }
+
+      if (status) {
+        filters.status = status;
+      }
+
+      const bookings = await this.courtService.getBookings(filters);
+
+      return res.status(200).json({
+        status: "success",
+        data: {
+          bookings,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message:
+          error instanceof Error ? error.message : "Failed to retrieve bookings",
       });
     }
   }

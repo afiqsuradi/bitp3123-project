@@ -23,6 +23,25 @@ export default class CourtRouter implements RouterInterface {
       this.courtController.getAllCourts.bind(this.courtController),
     );
 
+    // More specific routes should come before parameterized routes
+    this.router.get(
+      "/bookings/me",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.getCourtBookingsByUserId.bind(this.courtController),
+    );
+
+    this.router.get(
+      "/bookings",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.getBookings.bind(this.courtController),
+    );
+
+    this.router.put(
+      "/bookings/:bookingId",
+      passport.authenticate("jwt", { session: false }),
+      this.courtController.updateCourtBookingStatus.bind(this.courtController),
+    );
+
     this.router.get(
       "/:courtId",
       this.courtController.getCourt.bind(this.courtController),
@@ -31,18 +50,6 @@ export default class CourtRouter implements RouterInterface {
     this.router.get(
       "/:courtId/bookings",
       this.courtController.getCourtBookingsById.bind(this.courtController),
-    );
-
-    this.router.get(
-      "/bookings/me",
-      passport.authenticate("jwt", { session: false }),
-      this.courtController.getCourtBookingsByUserId.bind(this.courtController),
-    );
-
-    this.router.put(
-      "/bookings/:bookingId",
-      passport.authenticate("jwt", { session: false }),
-      this.courtController.updateCourtBookingStatus.bind(this.courtController),
     );
 
     this.router.post(

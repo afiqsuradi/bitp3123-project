@@ -318,4 +318,39 @@ export default class CourtService {
       .getPrismaClient()
       .booking.findUnique({ where: { id: bookingId } });
   }
+
+  public async getBookings(filters?: {
+    courtId?: number;
+    status?: BookingStatus | 'ALL';
+  }): Promise<Booking[]> {
+    const where: {
+      courtId?: number;
+      status?: BookingStatus;
+    } = {};
+
+    if (filters?.courtId) {
+      where.courtId = filters.courtId;
+    }
+
+    if (filters?.status && filters.status !== 'ALL') {
+      where.status = filters.status;
+    }
+
+    return this.database.getPrismaClient().booking.findMany({
+      where,
+      include: {
+        court: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        }
+      },
+      orderBy: {
+        startTime: 'desc',
+      },
+    });
+  }
 }

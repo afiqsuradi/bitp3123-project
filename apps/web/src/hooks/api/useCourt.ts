@@ -34,6 +34,19 @@ interface FetchUserCourtBookingsResponse {
   }
 }
 
+interface FetchAllBookingsResponse {
+  status: string
+  data: {
+    bookings: Array<UserBooking & {
+      user: {
+        id: number
+        name: string
+        email: string
+      }
+    }>
+  }
+}
+
 interface AddBookingToCourtRequest {
   courtId: number
   date: string
@@ -52,6 +65,28 @@ const fetchUserCourtBookings = async () => {
   return apiService.request<FetchUserCourtBookingsResponse>(
     `/courts/bookings/me`,
   )
+}
+
+const fetchAllBookings = async (filters?: {
+  courtId?: number
+  status?: string
+}) => {
+  let endpoint = '/courts/bookings'
+  const params = new URLSearchParams()
+  
+  if (filters?.courtId) {
+    params.append('courtId', filters.courtId.toString())
+  }
+  
+  if (filters?.status) {
+    params.append('status', filters.status)
+  }
+  
+  if (params.toString()) {
+    endpoint += `?${params.toString()}`
+  }
+  
+  return apiService.request<FetchAllBookingsResponse>(endpoint)
 }
 
 const fetchCourts = async () => {
@@ -136,6 +171,24 @@ export const useUserCourtBookings = () => {
   })
   return {
     bookings: data?.data?.bookings || [],
+    isLoading,
+    error,
+    refetch,
+  }
+}
+
+export const useAllBookings = (filters?: {
+  courtId?: number
+  status?: string
+}) => {
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['all-bookings', filters?.courtId, filters?.status],
+    queryFn: () => fetchAllBookings(filters),
+    staleTime: 1 * 30 * 1000,
+    retry: 3,
+  })
+  return {
+    bookings: data?.data.bookings || [],
     isLoading,
     error,
     refetch,
